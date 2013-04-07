@@ -2,6 +2,6 @@
 main ()
 
 {
-  printf("Hello Universal Studios, my name is Dopey\n");
+  printf("Hello Universal Studios, my name is Grumpy\n");
 }
 
