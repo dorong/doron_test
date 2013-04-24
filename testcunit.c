@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "CUnit/Headers/Basic.h"
-#include "CUnit/Headers/Automated.h"
+#include "CUHeaders/Basic.h"
+#include "CUHeaders/Automated.h"
 
 /* Pointer to the file used by the tests. */
 static FILE* temp_file = NULL;
