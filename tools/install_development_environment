@@ -1,0 +1,89 @@
+#!/usr/bin/python
+from __future__ import print_function
+import os
+import sys
+import subprocess
+import logging
+logging.basicConfig(level=logging.DEBUG)
+os.environ[ 'PATH' ] = "/usr/local/bin:" + os.environ[ 'PATH' ]
+
+UBUNTU_PACKAGES_TO_INSTALL=[ "build-essential", "python-pip", "vim-gnome", "python-dev", "p7zip-full", "httperf", "curl", "libboost-all-dev", "python-matplotlib", "aria2", "automake" ]
+RPM_PACKAGES_TO_INSTALL=[ "zlib-devel", "bzip2-devel", "openssl-devel", "boost", "boost-devel" ]
+PYTHON_PACKAGES_TO_INSTALL=[ "apache-libcloud", "paramiko", "httperfpy", "rpyc", "coverage", "pss", "pylint", "xmltodict", "futures" ]
+
+def p7zipInstalled():
+    return 0 == os.system( "which p7zip" )
+
+def downloadAndBuildp7zip():
+    if p7zipInstalled():
+        logging.info( "p7zip was found, no need to install" )
+        return
+    logging.info( "Downloading and building p7zip" )
+    subprocess.check_call( "curl http://garr.dl.sourceforge.net/project/p7zip/p7zip/9.20.1/p7zip_9.20.1_src_all.tar.bz2 -o /tmp/p7zip.tar.bz2", shell = True )
+    subprocess.check_call( "tar -xf /tmp/p7zip.tar.bz2", shell = True, cwd = '/tmp' )
+    subprocess.check_call( "make && make install", shell = True, cwd = "/tmp/p7zip_9.20.1" )
+
+def python27Installed():
+    return 0 == os.system( """python -c 'import sys; assert sys.version.startswith( "2.7" )'""" )
+
+def downloadAndBuildPython27():
+    if python27Installed():
+        logging.info( "Python 2.7 was found, no need to install" )
+        return
+    logging.info( "Downloading and building python 2.7" )
+    subprocess.check_call( "curl http://www.python.org/ftp/python/2.7.3/Python-2.7.3.tar.bz2 -o /tmp/Python-2.7.3.tar.bz2", shell = True )
+    subprocess.check_call( "tar -xf /tmp/Python-2.7.3.tar.bz2", shell = True, cwd = '/tmp' )
+    subprocess.check_call( "./configure && make && make install", shell = True, cwd = "/tmp/Python-2.7.3" )
+    assert python27Installed(), "Installation of python 2.7 failed"
+
+def distributeInstalled():
+    return 0 == os.system( "python -c 'import setuptools'" )
+
+def installDistribute():
+    if distributeInstalled():
+        logging.info( "found setuptools or distribute, no need to install" )
+        return
+    subprocess.check_call( "curl http://python-distribute.org/distribute_setup.py -o /tmp/distribute-setup.py", shell = True )
+    subprocess.check_call( "python /tmp/distribute-setup.py", shell = True )
+    assert distributeInstalled(), "Failed installing distribute"
+
+def pipInstalled():
+    return 0 == os.system( "which pip" )
+
+def installPIP():
+    if pipInstalled():
+        logging.info( "PIP was found, no need to install" )
+        return
+    logging.info( "Installing PIP manually" )
+    subprocess.check_call( "curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py -o /tmp/get-pip.py", shell = True )
+    subprocess.check_call( "python /tmp/get-pip.py", shell = True )
+    assert pipInstalled(), "Failed installing PIP"
+
+if os.getuid() != 0:
+    logging.error( "Please run me as root! (sudo %s)" % sys.argv[ 0 ] )
+    sys.exit( 1 )
+
+try:
+    runningOnUbuntu = 'Ubuntu' in open( "/etc/lsb-release" ).read()
+except:
+    runningOnUbuntu = False
+
+if runningOnUbuntu:
+    logging.info( "Updating package list" )
+    subprocess.check_call( "apt-get update --assume-yes", shell = True )
+    logging.info( "Updating Ubuntu packages" )
+    subprocess.check_call( "apt-get install %s --assume-yes" % " ".join( UBUNTU_PACKAGES_TO_INSTALL ), shell = True )
+else:
+    logging.info( "Updating package list" )
+    subprocess.check_call( "yum update -y", shell = True )
+    logging.info( "Updating RPM packages" )
+    subprocess.check_call( "yum install %s -y" % " ".join( RPM_PACKAGES_TO_INSTALL ), shell = True )
+    downloadAndBuildPython27()
+    downloadAndBuildp7zip()
+installDistribute()
+installPIP()
+logging.info( "Updating Python packages" )
+subprocess.check_call( "pip install --upgrade %s" % " ".join( PYTHON_PACKAGES_TO_INSTALL ), shell = True )
+
+print( "Done." )
+print( "Make sure to rerun this script whenever you suspect someone else from the team might have added a new package as a dependency" )
