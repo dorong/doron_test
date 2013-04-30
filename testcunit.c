@@ -96,8 +96,8 @@ int main()
     
     /* add the tests to the suite */
     /* NOTE - ORDER IS IMPORTANT - MUST TEST fread() AFTER fprintf() */
-    if ((NULL == CU_add_test(pSuite, "fprintf()", testFPRINTF)) ||
-        (NULL == CU_add_test(pSuite, "fread()", testFREAD)))
+    if ((NULL == CU_add_test(pSuite, "test fprintf()", testFPRINTF)) ||
+        (NULL == CU_add_test(pSuite, "test fread()", testFREAD)))
     {
         CU_cleanup_registry();
         return CU_get_error();
