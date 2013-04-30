@@ -7,6 +7,6 @@ main ()
   printf("adding yet another line\n");
   printf("and now the Bamboo line");
   printf("another build for installing the environment");
-  printf("testing the Cube");
+  printf("testing the Cube... and again");
 }
 
