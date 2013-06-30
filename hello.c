@@ -7,6 +7,6 @@ main ()
   printf("adding yet another line\n");
   printf("and now the Bamboo line");
   printf("another build for installing the environment");
-  printf("first change on github");
+  printf("jira github integration");
 }
 
